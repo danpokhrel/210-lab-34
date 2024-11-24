@@ -5,6 +5,7 @@
 #include <stack>
 #include <unordered_map>
 #include <limits>
+#include <algorithm> // For reverse
 using namespace std;
 
 const int SIZE = 15;
@@ -13,7 +14,7 @@ struct Edge {
     int src, dest, weight;
 };
 
-typedef pair<int, int> Pair;  // Alias for pair<int,int>
+typedef pair<int, int> Pair;  // Alias for pair<int, int>
 
 // Graph class
 class Graph {
@@ -118,6 +119,59 @@ public:
         }
         cout << endl;
     }
+
+    // Dijkstra's algorithm to find shortest paths from a single source
+    void findShortestPaths(int start, unordered_map<int, string> &cityNames) {
+        vector<int> distances(SIZE, numeric_limits<int>::max()); // Initialize distances
+        vector<int> parents(SIZE, -1); // To reconstruct paths
+        priority_queue<Pair, vector<Pair>, greater<>> minHeap; // {distance, node}
+
+        distances[start] = 0; // Distance to itself is 0
+        minHeap.push({0, start});
+
+        while (!minHeap.empty()) {
+            int node = minHeap.top().second;
+            int distance = minHeap.top().first;
+            minHeap.pop();
+
+            // Skip outdated entries in the priority queue
+            if (distance > distances[node]) continue;
+
+            for (auto &neighbor : adjList[node]) {
+                int nextNode = neighbor.first;
+                int weight = neighbor.second;
+
+                // Relaxation step
+                if (distances[node] + weight < distances[nextNode]) {
+                    distances[nextNode] = distances[node] + weight;
+                    parents[nextNode] = node;
+                    minHeap.push({distances[nextNode], nextNode});
+                }
+            }
+        }
+
+        // Print shortest paths and distances
+        cout << "Shortest paths from " << cityNames[start] << ":\n";
+        for (int i = 0; i < SIZE; i++) {
+            if (distances[i] == numeric_limits<int>::max()) {
+                cout << cityNames[start] << " -> " << cityNames[i] << ": No path\n";
+            } else {
+                cout << cityNames[start] << " -> " << cityNames[i] << " (Distance: " << distances[i] << " km): ";
+
+                // Reconstruct the path
+                vector<int> path;
+                for (int at = i; at != -1; at = parents[at]) {
+                    path.push_back(at);
+                }
+                reverse(path.begin(), path.end());
+
+                for (int city : path) {
+                    cout << cityNames[city] << " ";
+                }
+                cout << endl;
+            }
+        }
+    }
 };
 
 int main() {
@@ -148,6 +202,10 @@ int main() {
     // Utilize DFS to explore all cities from a starting city
     cout << "\nExploring All Routes Example (DFS):\n";
     graph.exploreAllRoutesDFS(7, cityNames); // Explore all cities from CityH
+
+    // Find shortest paths from CityA to every other city
+    cout << "\nShortest Paths from CityA:\n";
+    graph.findShortestPaths(1, cityNames); // Find shortest paths from CityB (1)
 
     return 0;
 }
