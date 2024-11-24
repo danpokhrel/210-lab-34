@@ -1,6 +1,9 @@
 // COMSC-210 | Lab 34 | Dan Pokhrel
 #include <iostream>
 #include <vector>
+#include <queue>
+#include <stack>
+#include <unordered_set>
 using namespace std;
 
 const int SIZE = 7;
@@ -44,6 +47,56 @@ public:
             cout << endl;
         }
     }
+
+    // BFS algorithm
+    void BFS(int start) {
+        cout << "BFS Traversal starting from node " << start << ": ";
+        vector<bool> visited(SIZE, false);
+        queue<int> q;
+
+        visited[start] = true;
+        q.push(start);
+
+        while (!q.empty()) {
+            int node = q.front();
+            q.pop();
+            cout << node << " ";
+
+            for (auto &neighbor : adjList[node]) {
+                if (!visited[neighbor.first]) {
+                    visited[neighbor.first] = true;
+                    q.push(neighbor.first);
+                }
+            }
+        }
+        cout << endl;
+    }
+
+    // DFS algorithm
+    void DFS(int start) {
+        cout << "DFS Traversal starting from node " << start << ": ";
+        vector<bool> visited(SIZE, false);
+        stack<int> st;
+
+        st.push(start);
+
+        while (!st.empty()) {
+            int node = st.top();
+            st.pop();
+
+            if (!visited[node]) {
+                cout << node << " ";
+                visited[node] = true;
+            }
+
+            for (auto &neighbor : adjList[node]) {
+                if (!visited[neighbor.first]) {
+                    st.push(neighbor.first);
+                }
+            }
+        }
+        cout << endl;
+    }
 };
 
 int main() {
@@ -58,6 +111,10 @@ int main() {
 
     // Prints adjacency list representation of graph
     graph.printGraph();
+
+    // Perform BFS and DFS starting from node 0
+    graph.BFS(0);
+    graph.DFS(0);
 
     return 0;
 }
