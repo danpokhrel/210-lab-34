@@ -6,7 +6,7 @@
 #include <unordered_set>
 using namespace std;
 
-const int SIZE = 7;
+const int SIZE = 15;
 
 struct Edge {
     int src, dest, weight;
@@ -103,7 +103,7 @@ int main() {
     // Creates a vector of graph edges/weights
     vector<Edge> edges = {
         // (x, y, w) —> edge from x to y having weight w
-        {0,1,12},{0,2,8},{0,3,21},{2,3,6},{2,6,2},{5,6,6},{4,5,9},{2,4,4},{2,5,5}
+        {7,1,2},{7,9,7},{7,3,3},{8,1,6},{8,5,10},{5,6,3},{4,5,9},{8,1,4},{8,5,5},{9,7,5},{10,3,12},{11,9,14},{12,4,8},{13,8,16},{14,5,6}
     };
 
     // Creates graph
@@ -113,8 +113,8 @@ int main() {
     graph.printGraph();
 
     // Perform BFS and DFS starting from node 0
-    graph.BFS(0);
-    graph.DFS(0);
+    graph.BFS(1);
+    graph.DFS(1);
 
     return 0;
 }
