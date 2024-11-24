@@ -43,8 +43,8 @@ public:
         }
     }
 
-    // BFS to find shortest path (by total distance)
-    void findShortestPathBFS(int start, int end, unordered_map<int, string> &cityNames) {
+    // BFS to find paths from the starting city to all other reachable cities
+    void findAllPathsBFS(int start, unordered_map<int, string> &cityNames) {
         vector<bool> visited(SIZE, false);
         queue<pair<int, int>> q; // {current city, total distance}
         unordered_map<int, int> parent; // To reconstruct the path
@@ -59,24 +59,8 @@ public:
             int distance = q.front().second;
             q.pop();
 
-            // If destination is found
-            if (node == end) {
-                cout << "Shortest path from " << cityNames[start] << " to " << cityNames[end]
-                     << " (Total Distance: " << distance << " km): ";
-
-                // Reconstruct the path
-                vector<int> path;
-                for (int at = end; at != -1; at = parent[at]) {
-                    path.push_back(at);
-                }
-                reverse(path.begin(), path.end());
-
-                for (int city : path) {
-                    cout << cityNames[city] << " ";
-                }
-                cout << endl;
-                return;
-            }
+            // Display the path and distance to each city
+            cout << "Path to " << cityNames[node] << " | Distance: " << distance << " km\n";
 
             // Explore neighbors
             for (auto &neighbor : adjList[node]) {
@@ -87,8 +71,6 @@ public:
                 }
             }
         }
-
-        cout << "No path found from " << cityNames[start] << " to " << cityNames[end] << ".\n";
     }
 
     // DFS to explore all cities and display distance to each
@@ -233,23 +215,43 @@ int main() {
     // Create the graph
     Graph graph(edges);
 
-    // Print the initial road network
-    graph.printGraph(cityNames);
+    // Main menu loop
+    int choice;
+    do {
+        cout << "\nIntercity Road Network Menu:\n";
+        cout << "[1] Display road network\n";
+        cout << "[2] Trace Possible Paths from CityB (BFS)\n";
+        cout << "[3] Trace Possible Paths from CityB (DFS)\n";
+        cout << "[4] Calculate shortest paths from CityB\n";
+        cout << "[5] Find Minimum Spanning Tree\n";
+        cout << "[0] Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+        cout << endl;
 
-    // Utilize BFS for shortest path
-    cout << "\nShortest Path Example (BFS):\n";
-    graph.findShortestPathBFS(7, 6, cityNames); // Shortest path from CityH to CityG
-
-    // Utilize DFS to explore all cities from a starting city
-    cout << "\nExploring All Routes Example (DFS):\n";
-    graph.exploreAllRoutesDFS(7, cityNames); // Explore all cities from CityH
-
-    // Find shortest paths from CityA to every other city
-    graph.findShortestPaths(1, cityNames);
-    cout << endl;
-
-    // Find Minimum Spanning Tree
-    graph.findMST(1, cityNames);
+        switch (choice) {
+            case 1:
+                graph.printGraph(cityNames);
+                break;
+            case 2:
+                graph.findAllPathsBFS(1, cityNames); // BFS from CityB
+                break;
+            case 3:
+                graph.exploreAllRoutesDFS(1, cityNames); // DFS from CityB
+                break;
+            case 4:
+                graph.findShortestPaths(1, cityNames); // Shortest paths from CityB
+                break;
+            case 5:
+                graph.findMST(1, cityNames); // MST starting from CityB
+                break;
+            case 0:
+                cout << "Exiting the program.\n";
+                break;
+            default:
+                cout << "Invalid choice. Please try again.\n";
+        }
+    } while (choice != 0);
 
     return 0;
 }
