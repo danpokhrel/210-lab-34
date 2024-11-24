@@ -3,7 +3,8 @@
 #include <vector>
 #include <queue>
 #include <stack>
-#include <unordered_set>
+#include <unordered_map>
+#include <limits>
 using namespace std;
 
 const int SIZE = 15;
@@ -12,86 +13,106 @@ struct Edge {
     int src, dest, weight;
 };
 
-typedef pair<int, int> Pair;  // Creates alias 'Pair' for the pair<int,int> data type
+typedef pair<int, int> Pair;  // Alias for pair<int,int>
 
+// Graph class
 class Graph {
 public:
-    // a vector of vectors of Pairs to represent an adjacency list
-    vector<vector<Pair>> adjList;
+    vector<vector<Pair>> adjList; // Adjacency list
 
-    // Graph Constructor
     Graph(vector<Edge> const &edges) {
-        // resize the vector to hold SIZE elements of type vector<Edge>
         adjList.resize(SIZE);
-
-        // add edges to the directed graph
-        for (auto &edge: edges) {
-            int src = edge.src;
-            int dest = edge.dest;
-            int weight = edge.weight;
-
-            // insert at the end
-            adjList[src].push_back(make_pair(dest, weight));
-            // for an undirected graph, add an edge from dest to src also
-            adjList[dest].push_back(make_pair(src, weight));
+        for (auto &edge : edges) {
+            adjList[edge.src].push_back({edge.dest, edge.weight});
+            adjList[edge.dest].push_back({edge.src, edge.weight}); // Undirected graph
         }
     }
 
-    // Print the graph's adjacency list
-    void printGraph() {
-        cout << "Graph's adjacency list:" << endl;
+    // Print adjacency list
+    void printGraph(unordered_map<int, string> &cityNames) {
+        cout << "Road Network (Adjacency List):\n";
         for (int i = 0; i < adjList.size(); i++) {
-            cout << i << " --> ";
-            for (Pair v : adjList[i])
-                cout << "(" << v.first << ", " << v.second << ") ";
-            cout << endl;
+            if (!adjList[i].empty()) {
+                cout << cityNames[i] << " --> ";
+                for (Pair v : adjList[i]) {
+                    cout << "(" << cityNames[v.first] << ", " << v.second << " km) ";
+                }
+                cout << endl;
+            }
         }
     }
 
-    // BFS algorithm
-    void BFS(int start) {
-        cout << "BFS Traversal starting from node " << start << ": ";
+    // BFS to find shortest path (by total distance)
+    void findShortestPathBFS(int start, int end, unordered_map<int, string> &cityNames) {
         vector<bool> visited(SIZE, false);
-        queue<int> q;
+        queue<pair<int, int>> q; // {current city, total distance}
+        unordered_map<int, int> parent; // To reconstruct the path
 
+        // Start with the starting city
+        q.push({start, 0});
         visited[start] = true;
-        q.push(start);
+        parent[start] = -1;
 
         while (!q.empty()) {
-            int node = q.front();
+            int node = q.front().first;
+            int distance = q.front().second;
             q.pop();
-            cout << node << " ";
 
+            // If destination is found
+            if (node == end) {
+                cout << "Shortest path from " << cityNames[start] << " to " << cityNames[end]
+                     << " (Total Distance: " << distance << " km): ";
+
+                // Reconstruct the path
+                vector<int> path;
+                for (int at = end; at != -1; at = parent[at]) {
+                    path.push_back(at);
+                }
+                reverse(path.begin(), path.end());
+
+                for (int city : path) {
+                    cout << cityNames[city] << " ";
+                }
+                cout << endl;
+                return;
+            }
+
+            // Explore neighbors
             for (auto &neighbor : adjList[node]) {
                 if (!visited[neighbor.first]) {
                     visited[neighbor.first] = true;
-                    q.push(neighbor.first);
+                    parent[neighbor.first] = node;
+                    q.push({neighbor.first, distance + neighbor.second});
                 }
             }
         }
-        cout << endl;
+
+        cout << "No path found from " << cityNames[start] << " to " << cityNames[end] << ".\n";
     }
 
-    // DFS algorithm
-    void DFS(int start) {
-        cout << "DFS Traversal starting from node " << start << ": ";
+    // DFS to explore all cities and display distance to each
+    void exploreAllRoutesDFS(int start, unordered_map<int, string> &cityNames) {
         vector<bool> visited(SIZE, false);
-        stack<int> st;
+        stack<pair<int, int>> st; // {current city, cumulative distance}
 
-        st.push(start);
+        st.push({start, 0});
+
+        cout << "Exploring all reachable cities from " << cityNames[start] << ":\n";
 
         while (!st.empty()) {
-            int node = st.top();
+            int node = st.top().first;
+            int distance = st.top().second;
             st.pop();
 
             if (!visited[node]) {
-                cout << node << " ";
+                cout << "City: " << cityNames[node] << " | Distance from " << cityNames[start]
+                     << ": " << distance << " km\n";
                 visited[node] = true;
             }
 
             for (auto &neighbor : adjList[node]) {
                 if (!visited[neighbor.first]) {
-                    st.push(neighbor.first);
+                    st.push({neighbor.first, distance + neighbor.second});
                 }
             }
         }
@@ -100,21 +121,33 @@ public:
 };
 
 int main() {
-    // Creates a vector of graph edges/weights
-    vector<Edge> edges = {
-        // (x, y, w) —> edge from x to y having weight w
-        {7,1,2},{7,9,7},{7,3,3},{8,1,6},{8,5,10},{5,6,3},{4,5,9},{8,1,4},{8,5,5},{9,7,5},{10,3,12},{11,9,14},{12,4,8},{13,8,16},{14,5,6}
+    // Cities
+    unordered_map<int, string> cityNames = {
+        {0, "CityA"}, {1, "CityB"}, {2, "CityC"}, {3, "CityD"}, {4, "CityE"},
+        {5, "CityF"}, {6, "CityG"}, {7, "CityH"}, {8, "CityI"}, {9, "CityJ"},
+        {10, "CityK"}, {11, "CityL"}, {12, "CityM"}, {13, "CityN"}, {14, "CityO"}
     };
 
-    // Creates graph
+    // Initial road network
+    vector<Edge> edges = {
+        {7, 1, 20}, {7, 9, 30}, {7, 3, 15}, {8, 1, 25}, {8, 5, 10},
+        {5, 6, 5}, {4, 5, 50}, {8, 1, 18}, {8, 5, 12}, {9, 7, 22},
+        {10, 3, 35}, {11, 9, 40}, {12, 4, 45}, {13, 8, 28}, {14, 5, 60}
+    };
+
+    // Create the graph
     Graph graph(edges);
 
-    // Prints adjacency list representation of graph
-    graph.printGraph();
+    // Print the initial road network
+    graph.printGraph(cityNames);
 
-    // Perform BFS and DFS starting from node 0
-    graph.BFS(1);
-    graph.DFS(1);
+    // Utilize BFS for shortest path
+    cout << "\nShortest Path Example (BFS):\n";
+    graph.findShortestPathBFS(7, 6, cityNames); // Shortest path from CityH to CityG
+
+    // Utilize DFS to explore all cities from a starting city
+    cout << "\nExploring All Routes Example (DFS):\n";
+    graph.exploreAllRoutesDFS(7, cityNames); // Explore all cities from CityH
 
     return 0;
 }
