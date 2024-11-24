@@ -172,6 +172,47 @@ public:
             }
         }
     }
+
+    // Function to find Minimum Spanning Tree (MST) using Prim's Algorithm
+    void findMST(int start, unordered_map<int, string> &cityNames) {
+        vector<int> key(SIZE, numeric_limits<int>::max());  // Initialize all keys as infinite
+        vector<int> parent(SIZE, -1); // Store the parent of each node
+        vector<bool> inMST(SIZE, false); // To check if the node is included in MST
+        priority_queue<Pair, vector<Pair>, greater<>> minHeap; // Min-heap for Prim's Algorithm
+
+        key[start] = 0; // Starting city has 0 weight
+        minHeap.push({0, start});
+
+        while (!minHeap.empty()) {
+            int u = minHeap.top().second;
+            minHeap.pop();
+            inMST[u] = true; // Include this city in MST
+
+            // Explore neighbors
+            for (auto &neighbor : adjList[u]) {
+                int v = neighbor.first;
+                int weight = neighbor.second;
+
+                // If the neighboring city is not in MST and has a smaller weight
+                if (!inMST[v] && weight < key[v]) {
+                    key[v] = weight;
+                    parent[v] = u;
+                    minHeap.push({key[v], v});
+                }
+            }
+        }
+
+        // Print the MST
+        cout << "Minimum Spanning Tree (MST):\n";
+        int totalWeight = 0;
+        for (int i = 0; i < SIZE; i++) {
+            if (parent[i] != -1) {
+                cout << cityNames[parent[i]] << " -- " << cityNames[i] << " (Distance: " << key[i] << " km)\n";
+                totalWeight += key[i];
+            }
+        }
+        cout << "Total weight of MST: " << totalWeight << " km\n";
+    }
 };
 
 int main() {
@@ -204,8 +245,11 @@ int main() {
     graph.exploreAllRoutesDFS(7, cityNames); // Explore all cities from CityH
 
     // Find shortest paths from CityA to every other city
-    cout << "\nShortest Paths from CityA:\n";
-    graph.findShortestPaths(1, cityNames); // Find shortest paths from CityB (1)
+    graph.findShortestPaths(1, cityNames);
+    cout << endl;
+
+    // Find Minimum Spanning Tree
+    graph.findMST(1, cityNames);
 
     return 0;
 }
